@@ -31,7 +31,7 @@ import static de.robv.android.xposed.XposedHelpers.findClass;
 /**
  * @author hejiangwei
  * Created at 2019/2/25.
- * @Describe
+ * @Describe 注意修改 手机号／微信号／QQ号
  */
 public class WXMain implements IXposedHookLoadPackage {
 
