@@ -33,7 +33,7 @@ import static de.robv.android.xposed.XposedHelpers.findClass;
 /**
  * @author hejiangwei
  * Created at 2019/2/25.
- * @Describe
+ * @Describe 微信版本为7.0.3  使用请修改手机号／微信号／QQ号
  */
 public class WXMain implements IXposedHookLoadPackage {
 
@@ -86,8 +86,8 @@ public class WXMain implements IXposedHookLoadPackage {
                                 @Override
                                 public void run() {
                                     isFromAddFriend = true;
-                                    XposedHelpers.setObjectField(param.thisObject, "query", "17615836609");
-                                    XposedHelpers.callMethod(param.thisObject, "Mf", "17615836609");
+                                    XposedHelpers.setObjectField(param.thisObject, "query", "手机号／微信号／QQ号");
+                                    XposedHelpers.callMethod(param.thisObject, "Mf", "手机号／微信号／QQ号");
 
                                 }
                             }, 1000);
