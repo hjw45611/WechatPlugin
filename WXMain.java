@@ -64,7 +64,19 @@ public class WXMain implements IXposedHookLoadPackage {
     }
 
     private void hookMultiClound() {
+        /**
+         * 在微信主界面的时候把isFromAddFriend重置为false，防止查看已加好友信息的时候也会执行click方法
+         */
+        XposedHelpers.findAndHookMethod("com.tencent.mm.ui.LauncherUI", mlpparam.classLoader,
+                "onResume",
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                        super.afterHookedMethod(param);
+                        isFromAddFriend = false;
 
+                    }
+                });
         final Class FTSAddFriendUIClass;
         final Class SayHiWithSnsPermissionUIClass;
         final Class ContactInfoUIClass;
