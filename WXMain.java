@@ -6,11 +6,15 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcel;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -29,6 +33,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import static de.robv.android.xposed.XposedHelpers.findAndHookConstructor;
 import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
 import static de.robv.android.xposed.XposedHelpers.findClass;
+import static de.robv.android.xposed.XposedHelpers.findField;
 
 /**
  * @author hejiangwei
@@ -81,11 +86,13 @@ public class WXMain implements IXposedHookLoadPackage {
         final Class SayHiWithSnsPermissionUIClass;
         final Class ContactInfoUIClass;
         final Class GetDataClass;
+        final Class ControllerClass;
         try {
             FTSAddFriendUIClass = mlpparam.classLoader.loadClass("com.tencent.mm.plugin.fts.ui.FTSAddFriendUI");
             SayHiWithSnsPermissionUIClass = mlpparam.classLoader.loadClass("com.tencent.mm.plugin.profile.ui.SayHiWithSnsPermissionUI");
             ContactInfoUIClass = mlpparam.classLoader.loadClass("com.tencent.mm.plugin.profile.ui.ContactInfoUI");
             GetDataClass = mlpparam.classLoader.loadClass("com.tencent.mm.pluginsdk.ui.applet.a");
+            ControllerClass = mlpparam.classLoader.loadClass("com.tencent.mm.ui.q");
 
             findAndHookMethod(FTSAddFriendUIClass,
                     "onCreate", Bundle.class,
@@ -106,22 +113,6 @@ public class WXMain implements IXposedHookLoadPackage {
 
                         }
                     });
-
-
-            /**
-             * 验证页的intent传值
-             */
-            findAndHookMethod(SayHiWithSnsPermissionUIClass,
-                    "onCreate", Bundle.class,
-                    new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(final MethodHookParam param) throws Throwable {
-                            super.beforeHookedMethod(param);
-                            log("SayHiWithSnsPermissionUI-bundle=" + logBundle(((Activity) param.thisObject).getIntent().getExtras()));
-
-                        }
-                    });
-
 
             /**
              * EF方法的参数
@@ -181,6 +172,73 @@ public class WXMain implements IXposedHookLoadPackage {
                         }
                     });
 
+            /**
+             * MMActivity中的mController的抽象父类构建Menu
+             */
+            findAndHookMethod(ControllerClass,
+                    "onCreateOptionsMenu", Menu.class,
+                    new XC_MethodHook() {
+                        @Override
+                        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                            super.afterHookedMethod(param);
+                            if (TextUtils.equals(XposedHelpers.findField(ControllerClass, "xyi").get(param.thisObject).getClass().getSimpleName(),
+                                    "SayHiWithSnsPermissionUI")) {
+                                log("onCreateOptionsMenu--" +
+                                        "list(0).xrP=" + XposedHelpers.findField(XposedHelpers.findClass("com.tencent.mm.ui.q$a", mlpparam.classLoader), "xrP").get(((LinkedList) findField(ControllerClass, "xrG").get(param.thisObject)).get(0)) + "===" +
+                                        "list(0).xyM==null=" + (XposedHelpers.findField(XposedHelpers.findClass("com.tencent.mm.ui.q$a", mlpparam.classLoader), "xyM").get(((LinkedList) findField(ControllerClass, "xrG").get(param.thisObject)).get(0)) == null) + "===" +
+                                        "textview=" + ((TextView) findField(ControllerClass, "xrx").get(param.thisObject)).getText() + "==" +
+                                        "Button=" + ((Button) findField(ControllerClass, "lvg").get(param.thisObject)).getText() + "=="
+                                );
+                          final Object menuItem = ((Menu) param.args[0]).getItem(0);
+                                new Handler().postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Object c2171a = ((LinkedList) findField(ControllerClass, "xrG").get(param.thisObject)).get(0);
+                                            Object menuItemClickListener = findField(XposedHelpers.findClass("com.tencent.mm.ui.q$a", mlpparam.classLoader), "gkj").get(c2171a);
+                                            XposedHelpers.callMethod(menuItemClickListener, "onMenuItemClick", menuItem);
+                                        } catch (IllegalAccessException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                    }
+                                }, 300);
+                            }
+                        }
+                    });
+            findAndHookMethod(SayHiWithSnsPermissionUIClass,
+                    "onCreate", Bundle.class,
+                    new XC_MethodHook() {
+
+                        @Override
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            super.beforeHookedMethod(param);
+                            log("SayHiWithSnsPermissionUI-bundle=" + logBundle(((Activity) param.thisObject).getIntent().getExtras()));
+                        }
+
+                        @Override
+                        protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
+                            super.afterHookedMethod(param);
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    try {
+
+                                        EditText editText = (EditText) XposedHelpers.findField(SayHiWithSnsPermissionUIClass, "oLC").get(param.thisObject);
+                                        editText.setText("测试用，勿加");
+                                        EditText editText1 = (EditText) XposedHelpers.findField(SayHiWithSnsPermissionUIClass, "oLD").get(param.thisObject);
+                                        editText1.setText("测试好友");
+
+
+                                    } catch (IllegalAccessException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }, 100);
+                        }
+                    });
 
             /**
              * 应该是进行网络请求查看是否需要验证的方法，其中有一个tipDialog
