@@ -82,6 +82,21 @@ public class WXMain implements IXposedHookLoadPackage {
 
                     }
                 });
+        //全局搜索xposed字段出现的方法，可能是微信的Xposed检测
+        XposedHelpers.findAndHookMethod("com.tencent.mm.app.t", mlpparam.classLoader,
+                "a",
+                StackTraceElement[].class,
+                new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+
+                        super.afterHookedMethod(param);
+                        if ((Boolean) param.getResult()) {
+                            log("----检测到xposed");
+                            param.setResult(false);
+                        }
+                    }
+                });
         final Class FTSAddFriendUIClass;
         final Class SayHiWithSnsPermissionUIClass;
         final Class ContactInfoUIClass;
