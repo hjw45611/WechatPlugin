@@ -182,7 +182,7 @@ public class WXMain implements IXposedHookLoadPackage {
                         protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                             super.afterHookedMethod(param);
                             if (TextUtils.equals(XposedHelpers.findField(ControllerClass, "xyi").get(param.thisObject).getClass().getSimpleName(),
-                                    "SayHiWithSnsPermissionUI")) {
+                                    "SayHiWithSnsPermissionUI") && isFromAddFriend) {
                                 log("onCreateOptionsMenu--" +
                                         "list(0).xrP=" + XposedHelpers.findField(XposedHelpers.findClass("com.tencent.mm.ui.q$a", mlpparam.classLoader), "xrP").get(((LinkedList) findField(ControllerClass, "xrG").get(param.thisObject)).get(0)) + "===" +
                                         "list(0).xyM==null=" + (XposedHelpers.findField(XposedHelpers.findClass("com.tencent.mm.ui.q$a", mlpparam.classLoader), "xyM").get(((LinkedList) findField(ControllerClass, "xrG").get(param.thisObject)).get(0)) == null) + "===" +
@@ -219,7 +219,9 @@ public class WXMain implements IXposedHookLoadPackage {
                         @Override
                         protected void afterHookedMethod(final MethodHookParam param) throws Throwable {
                             super.afterHookedMethod(param);
-
+                            if (!isFromAddFriend) {
+                                return;
+                            }
                             new Handler().postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
